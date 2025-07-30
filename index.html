@@ -1,0 +1,1485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SchApp - Smart Chat Application</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .neon-glow {
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+        
+        .message-bubble {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .story-ring {
+            background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff);
+            padding: 3px;
+            border-radius: 50%;
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .typing-indicator {
+            animation: typing 1.5s infinite;
+        }
+        
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+        
+        .notification {
+            animation: slideInRight 0.3s ease-out;
+        }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .online-indicator {
+            animation: onlinePulse 2s infinite;
+        }
+        
+        @keyframes onlinePulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+        }
+        
+        .room-card {
+            transition: all 0.3s ease;
+        }
+        
+        .room-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 255, 255, 0.2);
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen text-white overflow-hidden">
+    <!-- Notification Container -->
+    <div id="notificationContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+    
+    <!-- Home Page -->
+    <div id="homePage" class="min-h-screen flex items-center justify-center p-6">
+        <div class="max-w-4xl w-full">
+            <!-- Header -->
+            <div class="text-center mb-12 fade-in">
+                <div class="w-24 h-24 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-full flex items-center justify-center text-white text-4xl font-bold mx-auto mb-6 neon-glow">
+                    S
+                </div>
+                <h1 class="text-5xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent mb-4">
+                    Welcome to SchApp
+                </h1>
+                <p class="text-xl text-gray-300 mb-8">
+                    Create rooms, invite friends, and chat together in real-time
+                </p>
+            </div>
+            
+            <!-- Main Actions -->
+            <div class="grid md:grid-cols-2 gap-8 mb-12">
+                <!-- Create Room -->
+                <div class="glass-effect rounded-3xl p-8 room-card">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
+                            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-4">Create New Room</h3>
+                        <p class="text-gray-300 mb-6">Start a new chat room and invite your friends</p>
+                        <div class="space-y-4">
+                            <input type="text" id="roomNameInput" placeholder="Enter room name (optional)" class="w-full bg-gray-800 rounded-lg py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                            <input type="text" id="userNameInput" placeholder="Your name" class="w-full bg-gray-800 rounded-lg py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                            <button onclick="createRoom()" class="w-full py-3 bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-lg text-white font-medium transition-all duration-300 neon-glow">
+                                Create Room
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Join Room -->
+                <div class="glass-effect rounded-3xl p-8 room-card">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
+                            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-4">Join Existing Room</h3>
+                        <p class="text-gray-300 mb-6">Enter a room code or paste an invite link</p>
+                        <div class="space-y-4">
+                            <input type="text" id="roomCodeInput" placeholder="Room code or invite link" class="w-full bg-gray-800 rounded-lg py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-purple-400">
+                            <input type="text" id="joinUserNameInput" placeholder="Your name" class="w-full bg-gray-800 rounded-lg py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-purple-400">
+                            <button onclick="joinRoom()" class="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 rounded-lg text-white font-medium transition-all duration-300 neon-glow">
+                                Join Room
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Rooms -->
+            <div class="glass-effect rounded-3xl p-8 fade-in">
+                <h3 class="text-2xl font-bold text-white mb-6 text-center">Recent Rooms</h3>
+                <div id="recentRooms" class="grid md:grid-cols-3 gap-4">
+                    <!-- Recent rooms will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chat Application -->
+    <div id="chatApp" class="hidden">
+        <div class="flex h-screen">
+            <!-- Sidebar -->
+            <div class="w-80 glass-effect border-r border-gray-700 flex flex-col">
+                <!-- Header -->
+                <div class="p-6 border-b border-gray-700">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center space-x-3">
+                            <button onclick="goHome()" class="p-2 rounded-full glass-effect hover:neon-glow transition-all duration-300">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                                </svg>
+                            </button>
+                            <div>
+                                <h1 class="text-xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">SchApp</h1>
+                                <p class="text-xs text-gray-400" id="roomInfo">Room: Loading...</p>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="p-2 rounded-full glass-effect hover:neon-glow transition-all duration-300" onclick="toggleUserStatus()">
+                                <div id="userStatusIcon" class="w-4 h-4 bg-green-400 rounded-full online-indicator"></div>
+                            </button>
+                            <button class="p-2 rounded-full glass-effect hover:neon-glow transition-all duration-300" onclick="shareRoom()">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Room Members -->
+                    <div class="mb-4">
+                        <h3 class="text-sm font-medium text-gray-300 mb-3">Room Members (<span id="memberCount">0</span>)</h3>
+                        <div class="flex space-x-2 overflow-x-auto pb-2" id="membersContainer">
+                            <!-- Members will be populated here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Search -->
+                <div class="p-4">
+                    <div class="relative">
+                        <input type="text" id="searchInput" placeholder="Search messages..." class="w-full bg-gray-800 rounded-full py-3 px-4 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400" oninput="searchMessages()">
+                        <svg class="w-4 h-4 absolute left-3 top-3.5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                </div>
+                
+                <!-- Online Users -->
+                <div class="flex-1 overflow-y-auto">
+                    <div class="p-4">
+                        <h3 class="text-sm font-medium text-gray-300 mb-3">Online Now</h3>
+                        <div class="space-y-2" id="onlineUsersList">
+                            <!-- Online users will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Chat Area -->
+            <div class="flex-1 flex flex-col">
+                <!-- Chat Header -->
+                <div class="p-6 glass-effect border-b border-gray-700">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="relative">
+                                <div id="currentRoomAvatar" class="w-12 h-12 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center text-white font-bold">R</div>
+                                <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-gray-900 online-indicator"></div>
+                            </div>
+                            <div>
+                                <h3 id="currentRoomName" class="font-semibold text-lg">Room Chat</h3>
+                                <p id="currentRoomStatus" class="text-sm text-green-400">Active Room</p>
+                            </div>
+                        </div>
+                        <div class="flex space-x-3">
+                            <button class="p-3 rounded-full glass-effect hover:neon-glow transition-all duration-300" onclick="startGroupVideoCall()">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/>
+                                </svg>
+                            </button>
+                            <button class="p-3 rounded-full glass-effect hover:neon-glow transition-all duration-300" onclick="startGroupVoiceCall()">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
+                                </svg>
+                            </button>
+                            <button class="p-3 rounded-full glass-effect hover:neon-glow transition-all duration-300" onclick="toggleRoomSettings()">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Messages Area -->
+                <div class="flex-1 overflow-y-auto p-6 space-y-4" id="messagesContainer">
+                    <!-- Messages will be populated by JavaScript -->
+                </div>
+                
+                <!-- Typing Indicator -->
+                <div id="typingIndicator" class="px-6 pb-2 hidden">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold">?</div>
+                        <div class="bg-gray-800 rounded-2xl px-4 py-2">
+                            <div class="flex space-x-1">
+                                <div class="w-2 h-2 bg-gray-400 rounded-full typing-indicator"></div>
+                                <div class="w-2 h-2 bg-gray-400 rounded-full typing-indicator" style="animation-delay: 0.2s;"></div>
+                                <div class="w-2 h-2 bg-gray-400 rounded-full typing-indicator" style="animation-delay: 0.4s;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Message Input -->
+                <div class="p-6 glass-effect border-t border-gray-700">
+                    <div class="flex items-center space-x-4">
+                        <button class="p-3 rounded-full glass-effect hover:neon-glow transition-all duration-300" onclick="openCamera()">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586l-.707-.707A1 1 0 0013 4H7a1 1 0 00-.707.293L5.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                        <button class="p-3 rounded-full glass-effect hover:neon-glow transition-all duration-300" onclick="sendVoiceMessage()">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                        <div class="flex-1 relative">
+                            <input type="text" id="messageInput" placeholder="Type a message..." class="w-full bg-gray-800 rounded-full py-4 px-6 pr-12 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400" onkeypress="handleKeyPress(event)" oninput="handleTyping()">
+                            <button class="absolute right-2 top-2 p-2 rounded-full text-gray-400 hover:text-cyan-400 transition-colors" onclick="toggleEmojiPicker()">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 100-2 1 1 0 000 2zM9 9a1 1 0 100-2 1 1 0 000 2zM13 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <button class="p-3 rounded-full bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 transition-all duration-300 neon-glow" onclick="sendMessage()">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Video Call Modal -->
+    <div id="videoCallModal" class="fixed inset-0 bg-black bg-opacity-90 hidden items-center justify-center z-50">
+        <div class="glass-effect rounded-3xl p-8 max-w-6xl w-full mx-4">
+            <div class="text-center mb-6">
+                <h3 class="text-2xl font-bold text-white mb-2">Group Video Call</h3>
+                <p id="callStatus" class="text-cyan-400">Connecting participants...</p>
+                <p id="callDuration" class="text-gray-400 text-sm mt-2">00:00</p>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6" id="videoGrid">
+                <!-- Video participants will be populated here -->
+            </div>
+            <div class="flex justify-center space-x-6">
+                <button class="p-4 rounded-full bg-red-500 hover:bg-red-600 transition-colors" onclick="endCall()">
+                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
+                    </svg>
+                </button>
+                <button id="muteButton" class="p-4 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors" onclick="toggleMute()">
+                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM15.657 6.343a1 1 0 011.414 0A9.972 9.972 0 0119 12a9.972 9.972 0 01-1.929 5.657 1 1 0 11-1.414-1.414A7.971 7.971 0 0017 12c0-1.594-.471-3.076-1.343-4.243a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                    </svg>
+                </button>
+                <button id="videoButton" class="p-4 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors" onclick="toggleVideo()">
+                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Camera Modal -->
+    <div id="cameraModal" class="fixed inset-0 bg-black bg-opacity-90 hidden items-center justify-center z-50">
+        <div class="glass-effect rounded-3xl p-8 max-w-2xl w-full mx-4">
+            <div class="text-center mb-6">
+                <h3 class="text-2xl font-bold text-white mb-2">Snap & Send</h3>
+                <p class="text-gray-300">Take a photo or record a video</p>
+            </div>
+            <div class="bg-gray-900 rounded-2xl h-80 mb-6 flex items-center justify-center relative" id="cameraPreview">
+                <div class="text-center">
+                    <svg class="w-24 h-24 text-gray-500 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586l-.707-.707A1 1 0 0013 4H7a1 1 0 00-.707.293L5.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
+                    </svg>
+                    <p class="text-gray-400">Camera preview</p>
+                </div>
+            </div>
+            <div class="flex justify-center space-x-6">
+                <button class="p-4 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors" onclick="closeCamera()">
+                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                    </svg>
+                </button>
+                <button class="p-6 rounded-full bg-white hover:bg-gray-200 transition-colors" onclick="takePhoto()">
+                    <div class="w-4 h-4 bg-gray-800 rounded-full"></div>
+                </button>
+                <button id="recordButton" class="p-4 rounded-full bg-red-500 hover:bg-red-600 transition-colors" onclick="toggleRecording()">
+                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced SchApp Backend with Room Management
+        class SchAppBackend {
+            constructor() {
+                this.currentUser = null;
+                this.currentRoom = null;
+                this.rooms = new Map();
+                this.users = new Map();
+                this.messages = new Map();
+                this.onlineUsers = new Set();
+                this.initializeApp();
+            }
+            
+            initializeApp() {
+                // Check if user is joining via URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const roomCode = urlParams.get('room');
+                
+                if (roomCode) {
+                    // Auto-fill join room form
+                    document.getElementById('roomCodeInput').value = roomCode;
+                    showNotification('Room Found!', 'Enter your name to join this room');
+                } else {
+                    // Show home page
+                    this.showHomePage();
+                }
+                
+                // Load recent rooms
+                this.loadRecentRooms();
+                
+                // Setup real-time connection
+                this.setupRealTimeConnection();
+            }
+            
+            showHomePage() {
+                document.getElementById('homePage').classList.remove('hidden');
+                document.getElementById('chatApp').classList.add('hidden');
+            }
+            
+            showChatApp() {
+                document.getElementById('homePage').classList.add('hidden');
+                document.getElementById('chatApp').classList.remove('hidden');
+            }
+            
+            generateRoomCode() {
+                return Math.random().toString(36).substr(2, 8).toUpperCase();
+            }
+            
+            generateUserId() {
+                return 'user_' + Math.random().toString(36).substr(2, 9);
+            }
+            
+            createRoom(roomName, userName) {
+                const roomCode = this.generateRoomCode();
+                const userId = this.generateUserId();
+                
+                // Create user
+                this.currentUser = {
+                    id: userId,
+                    name: userName || 'Anonymous',
+                    avatar: userName ? userName.charAt(0).toUpperCase() : 'A',
+                    status: 'online',
+                    joinedAt: new Date(),
+                    color: this.getRandomColor()
+                };
+                
+                // Create room
+                this.currentRoom = {
+                    code: roomCode,
+                    name: roomName || `${userName}'s Room`,
+                    creator: userId,
+                    members: new Set([userId]),
+                    createdAt: new Date(),
+                    isActive: true
+                };
+                
+                // Store in maps
+                this.users.set(userId, this.currentUser);
+                this.rooms.set(roomCode, this.currentRoom);
+                this.messages.set(roomCode, []);
+                this.onlineUsers.add(userId);
+                
+                // Save to localStorage
+                this.saveRoomToRecent(this.currentRoom);
+                this.broadcastRoomUpdate();
+                
+                // Update URL
+                const newUrl = `${window.location.origin}${window.location.pathname}?room=${roomCode}`;
+                window.history.pushState({}, '', newUrl);
+                
+                // Show chat app
+                this.showChatApp();
+                this.updateChatUI();
+                
+                // Add welcome message
+                this.addSystemMessage(`Welcome to ${this.currentRoom.name}! Share the room code: ${roomCode}`);
+                
+                showNotification('Room Created!', `Room code: ${roomCode}`);
+                
+                return roomCode;
+            }
+            
+            joinRoom(roomCode, userName) {
+                // Extract room code from URL if it's a full URL
+                if (roomCode.includes('room=')) {
+                    const match = roomCode.match(/room=([^&]+)/);
+                    roomCode = match ? match[1] : roomCode;
+                }
+                
+                roomCode = roomCode.toUpperCase().trim();
+                const userId = this.generateUserId();
+                
+                // Create user
+                this.currentUser = {
+                    id: userId,
+                    name: userName || 'Anonymous',
+                    avatar: userName ? userName.charAt(0).toUpperCase() : 'A',
+                    status: 'online',
+                    joinedAt: new Date(),
+                    color: this.getRandomColor()
+                };
+                
+                // Check for existing room in multiple ways
+                let room = this.findExistingRoom(roomCode);
+                
+                if (!room) {
+                    // If no room found, show error instead of creating new one
+                    showNotification('Room Not Found', `Room ${roomCode} doesn't exist. Please check the code or ask the creator to share the link again.`);
+                    return false;
+                }
+                
+                // Load existing room data and members
+                this.loadExistingRoomData(room, roomCode);
+                
+                // Add current user to room
+                if (!room.members) {
+                    room.members = new Set();
+                }
+                room.members.add(userId);
+                
+                this.currentRoom = room;
+                this.users.set(userId, this.currentUser);
+                this.rooms.set(roomCode, room);
+                this.onlineUsers.add(userId);
+                
+                // Load existing messages
+                if (!this.messages.has(roomCode)) {
+                    this.messages.set(roomCode, this.loadMessagesFromStorage(roomCode));
+                }
+                
+                // Save to localStorage and broadcast
+                this.saveRoomToRecent(room);
+                this.broadcastRoomUpdate();
+                this.broadcastUserJoin();
+                
+                // Update URL
+                const newUrl = `${window.location.origin}${window.location.pathname}?room=${roomCode}`;
+                window.history.pushState({}, '', newUrl);
+                
+                // Show chat app
+                this.showChatApp();
+                this.updateChatUI();
+                
+                // Add join message
+                this.addSystemMessage(`${userName} joined the room`);
+                
+                showNotification('Joined Room!', `Welcome to ${room.name}`);
+                
+                return true;
+            }
+            
+            findExistingRoom(roomCode) {
+                // 1. Check current session
+                let room = this.rooms.get(roomCode);
+                if (room) return room;
+                
+                // 2. Check localStorage for room data
+                room = this.loadRoomFromStorage(roomCode);
+                if (room) return room;
+                
+                // 3. Check for any presence data indicating room exists
+                const presenceKeys = Object.keys(localStorage).filter(key => 
+                    key.startsWith(`schapp_presence_${roomCode}_`)
+                );
+                
+                if (presenceKeys.length > 0) {
+                    // Room exists, create basic room structure
+                    return {
+                        code: roomCode,
+                        name: `Room ${roomCode}`,
+                        creator: 'unknown',
+                        members: new Set(),
+                        createdAt: new Date(),
+                        isActive: true
+                    };
+                }
+                
+                // 4. Check for message data indicating room exists
+                const messageKey = `schapp_room_messages_${roomCode}`;
+                if (localStorage.getItem(messageKey)) {
+                    return {
+                        code: roomCode,
+                        name: `Room ${roomCode}`,
+                        creator: 'unknown',
+                        members: new Set(),
+                        createdAt: new Date(),
+                        isActive: true
+                    };
+                }
+                
+                // 5. Check recent rooms
+                const recentRooms = JSON.parse(localStorage.getItem('schapp_recent_rooms') || '[]');
+                const recentRoom = recentRooms.find(r => r.code === roomCode);
+                if (recentRoom) {
+                    return {
+                        code: roomCode,
+                        name: recentRoom.name,
+                        creator: 'unknown',
+                        members: new Set(),
+                        createdAt: new Date(),
+                        isActive: true
+                    };
+                }
+                
+                return null;
+            }
+            
+            loadExistingRoomData(room, roomCode) {
+                // Load existing users from presence data
+                const presenceKeys = Object.keys(localStorage).filter(key => 
+                    key.startsWith(`schapp_presence_${roomCode}_`)
+                );
+                
+                presenceKeys.forEach(key => {
+                    try {
+                        const presenceData = JSON.parse(localStorage.getItem(key));
+                        if (presenceData && presenceData.userId !== this.currentUser?.id) {
+                            const existingUser = {
+                                id: presenceData.userId,
+                                name: presenceData.userName,
+                                avatar: presenceData.userName.charAt(0).toUpperCase(),
+                                status: presenceData.status || 'online',
+                                joinedAt: new Date(presenceData.timestamp),
+                                color: this.getRandomColor()
+                            };
+                            
+                            this.users.set(presenceData.userId, existingUser);
+                            room.members.add(presenceData.userId);
+                            
+                            // Check if user is still active (within last 5 minutes)
+                            if (Date.now() - presenceData.timestamp < 300000) {
+                                this.onlineUsers.add(presenceData.userId);
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Error loading presence data:', e);
+                    }
+                });
+            }
+            
+            getRandomColor() {
+                const colors = [
+                    'from-green-400 to-blue-500',
+                    'from-purple-400 to-pink-500',
+                    'from-orange-400 to-red-500',
+                    'from-blue-400 to-cyan-500',
+                    'from-pink-400 to-purple-500',
+                    'from-yellow-400 to-orange-500',
+                    'from-indigo-400 to-purple-500',
+                    'from-teal-400 to-green-500'
+                ];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+            
+            setupRealTimeConnection() {
+                // Listen for storage changes (simulates real-time updates)
+                window.addEventListener('storage', (e) => {
+                    if (e.key && e.key.startsWith('schapp_')) {
+                        this.handleRemoteUpdate(e.key, e.newValue);
+                    }
+                });
+                
+                // Also check for updates by polling (for same-tab updates)
+                setInterval(() => {
+                    if (this.currentRoom) {
+                        this.checkForUpdates();
+                    }
+                }, 2000);
+                
+                // Broadcast presence every 15 seconds
+                setInterval(() => {
+                    if (this.currentUser && this.currentRoom) {
+                        this.broadcastPresence();
+                    }
+                }, 15000);
+                
+                // Initial presence broadcast
+                setTimeout(() => {
+                    if (this.currentUser && this.currentRoom) {
+                        this.broadcastPresence();
+                    }
+                }, 1000);
+            }
+            
+            checkForUpdates() {
+                if (!this.currentRoom) return;
+                
+                // Check for new presence data
+                const presenceKeys = Object.keys(localStorage).filter(key => 
+                    key.startsWith(`schapp_presence_${this.currentRoom.code}_`)
+                );
+                
+                let hasNewUsers = false;
+                presenceKeys.forEach(key => {
+                    try {
+                        const presenceData = JSON.parse(localStorage.getItem(key));
+                        if (presenceData && 
+                            presenceData.userId !== this.currentUser.id && 
+                            !this.users.has(presenceData.userId)) {
+                            
+                            // New user found
+                            const newUser = {
+                                id: presenceData.userId,
+                                name: presenceData.userName,
+                                avatar: presenceData.userName.charAt(0).toUpperCase(),
+                                status: presenceData.status || 'online',
+                                joinedAt: new Date(presenceData.timestamp),
+                                color: this.getRandomColor()
+                            };
+                            
+                            this.users.set(presenceData.userId, newUser);
+                            this.currentRoom.members.add(presenceData.userId);
+                            this.onlineUsers.add(presenceData.userId);
+                            hasNewUsers = true;
+                            
+                            showNotification('New Member!', `${presenceData.userName} joined the room`);
+                        }
+                    } catch (e) {
+                        console.error('Error checking presence:', e);
+                    }
+                });
+                
+                if (hasNewUsers) {
+                    this.updateChatUI();
+                }
+                
+                // Check for new messages
+                this.checkForNewMessages();
+            }
+            
+            checkForNewMessages() {
+                const currentMessages = this.messages.get(this.currentRoom.code) || [];
+                const latestMessages = this.loadMessagesFromStorage(this.currentRoom.code);
+                
+                if (latestMessages.length > currentMessages.length) {
+                    // New messages found
+                    const newMessages = latestMessages.slice(currentMessages.length);
+                    
+                    newMessages.forEach(message => {
+                        if (message.sender !== this.currentUser.id) {
+                            const senderName = this.users.get(message.sender)?.name || 'Someone';
+                            showNotification(`${senderName}`, message.content);
+                        }
+                    });
+                    
+                    this.messages.set(this.currentRoom.code, latestMessages);
+                    this.renderMessages();
+                }
+            }
+            
+            broadcastPresence() {
+                const presenceData = {
+                    userId: this.currentUser.id,
+                    userName: this.currentUser.name,
+                    roomCode: this.currentRoom.code,
+                    timestamp: Date.now(),
+                    status: this.currentUser.status
+                };
+                
+                localStorage.setItem(`schapp_presence_${this.currentRoom.code}_${this.currentUser.id}`, JSON.stringify(presenceData));
+            }
+            
+            broadcastRoomUpdate() {
+                if (!this.currentRoom) return;
+                
+                const roomData = {
+                    ...this.currentRoom,
+                    members: Array.from(this.currentRoom.members)
+                };
+                
+                localStorage.setItem(`schapp_room_${this.currentRoom.code}`, JSON.stringify(roomData));
+            }
+            
+            broadcastUserJoin() {
+                const joinData = {
+                    type: 'user_join',
+                    user: this.currentUser,
+                    roomCode: this.currentRoom.code,
+                    timestamp: Date.now()
+                };
+                
+                localStorage.setItem(`schapp_event_${Date.now()}`, JSON.stringify(joinData));
+            }
+            
+            broadcastMessage(message) {
+                const messageData = {
+                    ...message,
+                    roomCode: this.currentRoom.code
+                };
+                
+                localStorage.setItem(`schapp_message_${this.currentRoom.code}_${message.id}`, JSON.stringify(messageData));
+                
+                // Also save to persistent room messages
+                this.saveMessageToPersistentStorage(messageData);
+                
+                // Clean up old messages from temporary storage
+                setTimeout(() => {
+                    localStorage.removeItem(`schapp_message_${this.currentRoom.code}_${message.id}`);
+                }, 300000); // 5 minutes
+            }
+            
+            saveMessageToPersistentStorage(message) {
+                const storageKey = `schapp_room_messages_${message.roomCode}`;
+                let roomMessages = [];
+                
+                try {
+                    const existing = localStorage.getItem(storageKey);
+                    if (existing) {
+                        roomMessages = JSON.parse(existing);
+                    }
+                } catch (e) {
+                    roomMessages = [];
+                }
+                
+                // Add new message
+                roomMessages.push(message);
+                
+                // Keep only last 100 messages per room
+                if (roomMessages.length > 100) {
+                    roomMessages = roomMessages.slice(-100);
+                }
+                
+                localStorage.setItem(storageKey, JSON.stringify(roomMessages));
+            }
+            
+            handleRemoteUpdate(key, value) {
+                if (!value) return;
+                
+                try {
+                    const data = JSON.parse(value);
+                    
+                    if (key.includes('_presence_')) {
+                        this.handleRemotePresence(data);
+                    } else if (key.includes('_message_')) {
+                        this.handleRemoteMessage(data);
+                    } else if (key.includes('_event_')) {
+                        this.handleRemoteEvent(data);
+                    }
+                } catch (e) {
+                    console.error('Error handling remote update:', e);
+                }
+            }
+            
+            handleRemotePresence(data) {
+                if (data.roomCode === this.currentRoom?.code && data.userId !== this.currentUser?.id) {
+                    // Add remote user if not exists
+                    if (!this.users.has(data.userId)) {
+                        const remoteUser = {
+                            id: data.userId,
+                            name: data.userName,
+                            avatar: data.userName.charAt(0).toUpperCase(),
+                            status: data.status,
+                            joinedAt: new Date(data.timestamp),
+                            color: this.getRandomColor()
+                        };
+                        
+                        this.users.set(data.userId, remoteUser);
+                        this.currentRoom.members.add(data.userId);
+                    }
+                    
+                    this.onlineUsers.add(data.userId);
+                    this.updateChatUI();
+                }
+            }
+            
+            handleRemoteMessage(data) {
+                if (data.roomCode === this.currentRoom?.code && data.sender !== this.currentUser?.id) {
+                    const messages = this.messages.get(data.roomCode) || [];
+                    
+                    // Check if message already exists
+                    if (!messages.find(m => m.id === data.id)) {
+                        messages.push(data);
+                        this.messages.set(data.roomCode, messages);
+                        this.renderMessages();
+                        
+                        // Show notification
+                        const senderName = this.users.get(data.sender)?.name || 'Someone';
+                        showNotification(`${senderName}`, data.content);
+                    }
+                }
+            }
+            
+            handleRemoteEvent(data) {
+                if (data.roomCode === this.currentRoom?.code && data.user.id !== this.currentUser?.id) {
+                    if (data.type === 'user_join') {
+                        this.users.set(data.user.id, data.user);
+                        this.currentRoom.members.add(data.user.id);
+                        this.onlineUsers.add(data.user.id);
+                        this.updateChatUI();
+                        
+                        showNotification('New Member!', `${data.user.name} joined the room`);
+                    }
+                }
+            }
+            
+            sendMessage(content, type = 'text') {
+                if (!this.currentRoom || !this.currentUser) return;
+                
+                const messageId = Date.now().toString();
+                const message = {
+                    id: messageId,
+                    sender: this.currentUser.id,
+                    senderName: this.currentUser.name,
+                    content: content,
+                    timestamp: new Date(),
+                    type: type,
+                    status: 'sent'
+                };
+                
+                const messages = this.messages.get(this.currentRoom.code) || [];
+                messages.push(message);
+                this.messages.set(this.currentRoom.code, messages);
+                
+                // Broadcast message
+                this.broadcastMessage(message);
+                
+                return message;
+            }
+            
+            addSystemMessage(content) {
+                const message = {
+                    id: Date.now().toString(),
+                    sender: 'system',
+                    senderName: 'System',
+                    content: content,
+                    timestamp: new Date(),
+                    type: 'system',
+                    status: 'delivered'
+                };
+                
+                const messages = this.messages.get(this.currentRoom.code) || [];
+                messages.push(message);
+                this.messages.set(this.currentRoom.code, messages);
+            }
+            
+            updateChatUI() {
+                if (!this.currentRoom || !this.currentUser) return;
+                
+                // Update room info
+                document.getElementById('roomInfo').textContent = `Room: ${this.currentRoom.code}`;
+                document.getElementById('currentRoomName').textContent = this.currentRoom.name;
+                document.getElementById('currentRoomAvatar').textContent = this.currentRoom.name.charAt(0);
+                
+                // Update member count
+                document.getElementById('memberCount').textContent = this.currentRoom.members.size;
+                
+                // Render members
+                this.renderMembers();
+                
+                // Render online users
+                this.renderOnlineUsers();
+                
+                // Render messages
+                this.renderMessages();
+            }
+            
+            renderMembers() {
+                const container = document.getElementById('membersContainer');
+                container.innerHTML = '';
+                
+                this.currentRoom.members.forEach(userId => {
+                    const user = this.users.get(userId);
+                    if (user) {
+                        const memberElement = document.createElement('div');
+                        memberElement.className = 'flex-shrink-0 text-center cursor-pointer';
+                        memberElement.innerHTML = `
+                            <div class="relative">
+                                <div class="w-10 h-10 bg-gradient-to-br ${user.color} rounded-full flex items-center justify-center text-white text-sm font-bold">${user.avatar}</div>
+                                ${this.onlineUsers.has(userId) ? '<div class="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border border-gray-900 online-indicator"></div>' : ''}
+                            </div>
+                            <p class="text-xs mt-1 text-gray-300">${user.name}</p>
+                        `;
+                        container.appendChild(memberElement);
+                    }
+                });
+            }
+            
+            renderOnlineUsers() {
+                const container = document.getElementById('onlineUsersList');
+                container.innerHTML = '';
+                
+                this.onlineUsers.forEach(userId => {
+                    const user = this.users.get(userId);
+                    if (user && userId !== this.currentUser.id) {
+                        const userElement = document.createElement('div');
+                        userElement.className = 'flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-800/50 cursor-pointer';
+                        userElement.innerHTML = `
+                            <div class="relative">
+                                <div class="w-8 h-8 bg-gradient-to-br ${user.color} rounded-full flex items-center justify-center text-white text-sm font-bold">${user.avatar}</div>
+                                <div class="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border border-gray-900 online-indicator"></div>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-white text-sm font-medium">${user.name}</p>
+                                <p class="text-green-400 text-xs">Online</p>
+                            </div>
+                        `;
+                        container.appendChild(userElement);
+                    }
+                });
+            }
+            
+            renderMessages() {
+                const container = document.getElementById('messagesContainer');
+                const messages = this.messages.get(this.currentRoom?.code) || [];
+                
+                container.innerHTML = '';
+                
+                messages.forEach(message => {
+                    const messageElement = document.createElement('div');
+                    messageElement.className = 'message-bubble';
+                    
+                    if (message.type === 'system') {
+                        messageElement.innerHTML = `
+                            <div class="text-center">
+                                <p class="text-gray-400 text-sm bg-gray-800/50 rounded-full px-4 py-2 inline-block">
+                                    ${message.content}
+                                </p>
+                            </div>
+                        `;
+                    } else {
+                        const user = this.users.get(message.sender);
+                        const isOwn = message.sender === this.currentUser?.id;
+                        const timeString = message.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                        
+                        if (isOwn) {
+                            messageElement.className += ' flex justify-end';
+                            messageElement.innerHTML = `
+                                <div class="max-w-xs">
+                                    <div class="bg-gradient-to-r from-cyan-500 to-purple-600 rounded-2xl rounded-tr-md p-4">
+                                        <p class="text-white">${message.content}</p>
+                                    </div>
+                                    <p class="text-xs text-gray-400 mt-1 text-right">
+                                        ${timeString} 
+                                        <span class="text-cyan-400">✓✓</span>
+                                    </p>
+                                </div>
+                            `;
+                        } else {
+                            messageElement.innerHTML = `
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-8 h-8 bg-gradient-to-br ${user?.color || 'from-gray-400 to-gray-600'} rounded-full flex items-center justify-center text-white text-sm font-bold">${user?.avatar || '?'}</div>
+                                    <div class="max-w-xs">
+                                        <p class="text-xs text-gray-400 mb-1">${user?.name || 'Unknown'}</p>
+                                        <div class="bg-gray-800 rounded-2xl rounded-tl-md p-4">
+                                            <p class="text-white">${message.content}</p>
+                                        </div>
+                                        <p class="text-xs text-gray-400 mt-1">${timeString}</p>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }
+                    
+                    container.appendChild(messageElement);
+                });
+                
+                container.scrollTop = container.scrollHeight;
+            }
+            
+            saveRoomToRecent(room) {
+                let recentRooms = JSON.parse(localStorage.getItem('schapp_recent_rooms') || '[]');
+                
+                // Remove existing entry
+                recentRooms = recentRooms.filter(r => r.code !== room.code);
+                
+                // Add to beginning
+                recentRooms.unshift({
+                    code: room.code,
+                    name: room.name,
+                    lastVisited: new Date().toISOString()
+                });
+                
+                // Keep only last 5
+                recentRooms = recentRooms.slice(0, 5);
+                
+                localStorage.setItem('schapp_recent_rooms', JSON.stringify(recentRooms));
+            }
+            
+            loadRecentRooms() {
+                const recentRooms = JSON.parse(localStorage.getItem('schapp_recent_rooms') || '[]');
+                const container = document.getElementById('recentRooms');
+                
+                if (recentRooms.length === 0) {
+                    container.innerHTML = '<p class="text-gray-400 text-center col-span-3">No recent rooms</p>';
+                    return;
+                }
+                
+                container.innerHTML = '';
+                
+                recentRooms.forEach(room => {
+                    const roomElement = document.createElement('div');
+                    roomElement.className = 'glass-effect rounded-xl p-4 cursor-pointer hover:neon-glow transition-all duration-300';
+                    roomElement.onclick = () => {
+                        document.getElementById('roomCodeInput').value = room.code;
+                        document.getElementById('joinUserNameInput').focus();
+                    };
+                    
+                    roomElement.innerHTML = `
+                        <div class="text-center">
+                            <div class="w-12 h-12 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold mx-auto mb-3">
+                                ${room.name.charAt(0)}
+                            </div>
+                            <h4 class="font-medium text-white mb-1">${room.name}</h4>
+                            <p class="text-xs text-gray-400">Code: ${room.code}</p>
+                        </div>
+                    `;
+                    
+                    container.appendChild(roomElement);
+                });
+            }
+            
+            loadRoomFromStorage(roomCode) {
+                const roomData = localStorage.getItem(`schapp_room_${roomCode}`);
+                if (roomData) {
+                    const room = JSON.parse(roomData);
+                    room.members = new Set(room.members);
+                    return room;
+                }
+                return null;
+            }
+            
+            loadMessagesFromStorage(roomCode) {
+                // First try to load from persistent storage
+                const persistentKey = `schapp_room_messages_${roomCode}`;
+                try {
+                    const persistentMessages = localStorage.getItem(persistentKey);
+                    if (persistentMessages) {
+                        return JSON.parse(persistentMessages);
+                    }
+                } catch (e) {
+                    // Fall back to temporary storage
+                }
+                
+                // Fallback: load from temporary message storage
+                const messages = [];
+                const messageKeys = Object.keys(localStorage).filter(key => 
+                    key.startsWith(`schapp_message_${roomCode}_`)
+                );
+                
+                messageKeys.forEach(key => {
+                    try {
+                        const messageData = JSON.parse(localStorage.getItem(key));
+                        if (messageData && messageData.roomCode === roomCode) {
+                            messages.push(messageData);
+                        }
+                    } catch (e) {
+                        // Skip invalid message data
+                    }
+                });
+                
+                // Sort messages by timestamp
+                return messages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            }
+        }
+        
+        // Initialize backend
+        const backend = new SchAppBackend();
+        let typingTimeout;
+        let callDuration = 0;
+        let callTimer;
+        let isRecording = false;
+        
+        // Home page functions
+        function createRoom() {
+            const roomName = document.getElementById('roomNameInput').value.trim();
+            const userName = document.getElementById('userNameInput').value.trim();
+            
+            if (!userName) {
+                showNotification('Name Required', 'Please enter your name to create a room');
+                return;
+            }
+            
+            const roomCode = backend.createRoom(roomName, userName);
+            showNotification('Room Created!', `Room code: ${roomCode}. Share this with friends!`);
+        }
+        
+        function joinRoom() {
+            const roomCode = document.getElementById('roomCodeInput').value.trim();
+            const userName = document.getElementById('joinUserNameInput').value.trim();
+            
+            if (!roomCode) {
+                showNotification('Room Code Required', 'Please enter a room code or paste an invite link');
+                return;
+            }
+            
+            if (!userName) {
+                showNotification('Name Required', 'Please enter your name to join the room');
+                return;
+            }
+            
+            try {
+                backend.joinRoom(roomCode, userName);
+            } catch (error) {
+                showNotification('Error', 'Could not join room. Please check the room code.');
+            }
+        }
+        
+        function goHome() {
+            backend.showHomePage();
+            // Clear URL parameters
+            window.history.pushState({}, '', window.location.pathname);
+        }
+        
+        // Chat functions
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (message && backend.currentRoom) {
+                backend.sendMessage(message);
+                backend.renderMessages();
+                input.value = '';
+                
+                // Show typing indicator for others
+                showTypingIndicator();
+                setTimeout(hideTypingIndicator, 2000);
+            }
+        }
+        
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+        
+        function handleTyping() {
+            // Broadcast typing indicator
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                // Stop typing indicator
+            }, 1000);
+        }
+        
+        function showTypingIndicator() {
+            document.getElementById('typingIndicator').classList.remove('hidden');
+        }
+        
+        function hideTypingIndicator() {
+            document.getElementById('typingIndicator').classList.add('hidden');
+        }
+        
+        function shareRoom() {
+            if (!backend.currentRoom) return;
+            
+            const roomUrl = `${window.location.origin}${window.location.pathname}?room=${backend.currentRoom.code}`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: `Join my SchApp room: ${backend.currentRoom.name}`,
+                    text: `Join our chat room on SchApp!`,
+                    url: roomUrl
+                }).catch(console.error);
+            } else if (navigator.clipboard) {
+                navigator.clipboard.writeText(roomUrl).then(() => {
+                    showNotification('Link Copied!', 'Room invite link copied to clipboard');
+                }).catch(() => {
+                    showShareModal(roomUrl);
+                });
+            } else {
+                showShareModal(roomUrl);
+            }
+        }
+        
+        function showShareModal(url) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="glass-effect rounded-3xl p-8 max-w-md w-full mx-4">
+                    <h3 class="text-2xl font-bold text-white mb-4 text-center">Share Room</h3>
+                    <p class="text-gray-300 mb-4 text-center">Copy this link and share it with your friends:</p>
+                    <div class="bg-gray-800 rounded-lg p-4 mb-4">
+                        <input type="text" value="${url}" class="w-full bg-transparent text-white text-sm" readonly onclick="this.select()">
+                    </div>
+                    <div class="text-center mb-4">
+                        <p class="text-gray-400 text-sm">Room Code: <span class="text-cyan-400 font-bold">${backend.currentRoom.code}</span></p>
+                    </div>
+                    <div class="flex space-x-4">
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" class="flex-1 p-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-white transition-colors">Close</button>
+                        <button onclick="copyToClipboard('${url}'); this.parentElement.parentElement.parentElement.remove();" class="flex-1 p-3 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 rounded-lg text-white transition-colors">Copy Link</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        function copyToClipboard(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            showNotification('Link Copied!', 'Room invite link copied to clipboard');
+        }
+        
+        // Video call functions
+        function startGroupVideoCall() {
+            if (!backend.currentRoom) return;
+            
+            document.getElementById('callStatus').textContent = 'Connecting participants...';
+            document.getElementById('videoCallModal').classList.remove('hidden');
+            document.getElementById('videoCallModal').classList.add('flex');
+            
+            // Populate video grid with room members
+            const videoGrid = document.getElementById('videoGrid');
+            videoGrid.innerHTML = '';
+            
+            backend.currentRoom.members.forEach(userId => {
+                const user = backend.users.get(userId);
+                if (user) {
+                    const videoElement = document.createElement('div');
+                    videoElement.className = 'bg-gray-900 rounded-xl h-32 flex items-center justify-center relative';
+                    videoElement.innerHTML = `
+                        <div class="w-16 h-16 bg-gradient-to-br ${user.color} rounded-full flex items-center justify-center text-white text-xl font-bold pulse">
+                            ${user.avatar}
+                        </div>
+                        <div class="absolute bottom-2 left-2 bg-black bg-opacity-50 rounded px-2 py-1">
+                            <p class="text-white text-xs">${user.name}</p>
+                        </div>
+                    `;
+                    videoGrid.appendChild(videoElement);
+                }
+            });
+            
+            // Simulate call connection
+            setTimeout(() => {
+                document.getElementById('callStatus').textContent = 'Connected';
+                startCallTimer();
+            }, 3000);
+        }
+        
+        function startGroupVoiceCall() {
+            showNotification('Voice Call', 'Starting group voice call...');
+        }
+        
+        function startCallTimer() {
+            callDuration = 0;
+            callTimer = setInterval(() => {
+                callDuration++;
+                const minutes = Math.floor(callDuration / 60);
+                const seconds = callDuration % 60;
+                document.getElementById('callDuration').textContent = 
+                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+        
+        function endCall() {
+            document.getElementById('videoCallModal').classList.add('hidden');
+            document.getElementById('videoCallModal').classList.remove('flex');
+            if (callTimer) {
+                clearInterval(callTimer);
+            }
+            showNotification('Call Ended', `Call duration: ${Math.floor(callDuration / 60)}:${(callDuration % 60).toString().padStart(2, '0')}`);
+        }
+        
+        function toggleMute() {
+            const button = document.getElementById('muteButton');
+            button.classList.toggle('bg-red-500');
+            button.classList.toggle('bg-gray-700');
+        }
+        
+        function toggleVideo() {
+            const button = document.getElementById('videoButton');
+            button.classList.toggle('bg-red-500');
+            button.classList.toggle('bg-gray-700');
+        }
+        
+        // Camera functions
+        function openCamera() {
+            document.getElementById('cameraModal').classList.remove('hidden');
+            document.getElementById('cameraModal').classList.add('flex');
+        }
+        
+        function closeCamera() {
+            document.getElementById('cameraModal').classList.add('hidden');
+            document.getElementById('cameraModal').classList.remove('flex');
+            if (isRecording) {
+                toggleRecording();
+            }
+        }
+        
+        function takePhoto() {
+            if (backend.currentRoom) {
+                backend.sendMessage('📸 Photo shared', 'image');
+                backend.renderMessages();
+                closeCamera();
+                showNotification('Photo Sent', 'Your photo has been shared with the room!');
+            }
+        }
+        
+        function toggleRecording() {
+            const button = document.getElementById('recordButton');
+            isRecording = !isRecording;
+            
+            if (isRecording) {
+                button.classList.add('pulse');
+                showNotification('Recording', 'Video recording started');
+            } else {
+                button.classList.remove('pulse');
+                if (backend.currentRoom) {
+                    backend.sendMessage('🎥 Video shared', 'video');
+                    backend.renderMessages();
+                }
+                closeCamera();
+                showNotification('Video Sent', 'Your video has been shared with the room!');
+            }
+        }
+        
+        function sendVoiceMessage() {
+            if (backend.currentRoom) {
+                backend.sendMessage('🎤 Voice message', 'voice');
+                backend.renderMessages();
+                showNotification('Voice Message', 'Voice message sent to the room!');
+            }
+        }
+        
+        // Other functions
+        function toggleUserStatus() {
+            if (!backend.currentUser) return;
+            
+            const statuses = ['online', 'away', 'busy'];
+            const currentIndex = statuses.indexOf(backend.currentUser.status);
+            backend.currentUser.status = statuses[(currentIndex + 1) % statuses.length];
+            
+            const icon = document.getElementById('userStatusIcon');
+            const colors = { online: 'bg-green-400', away: 'bg-yellow-400', busy: 'bg-red-400' };
+            icon.className = `w-4 h-4 ${colors[backend.currentUser.status]} rounded-full ${backend.currentUser.status === 'online' ? 'online-indicator' : ''}`;
+            
+            showNotification('Status Updated', `You are now ${backend.currentUser.status}`);
+        }
+        
+        function searchMessages() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            // Implement message search functionality
+            showNotification('Search', 'Message search feature coming soon!');
+        }
+        
+        function toggleEmojiPicker() {
+            const emojis = ['😊', '😂', '❤️', '👍', '🎉', '🚀', '💯', '🔥', '✨', '🎯'];
+            const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+            const input = document.getElementById('messageInput');
+            input.value += randomEmoji;
+            input.focus();
+        }
+        
+        function toggleRoomSettings() {
+            showNotification('Room Settings', 'Room settings panel coming soon!');
+        }
+        
+        function showNotification(title, message) {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            notification.className = 'notification glass-effect rounded-lg p-4 max-w-sm';
+            notification.innerHTML = `
+                <div class="flex items-start space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm">S</div>
+                    <div class="flex-1">
+                        <h4 class="font-medium text-white text-sm">${title}</h4>
+                        <p class="text-gray-300 text-xs mt-1">${message}</p>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="text-gray-400 hover:text-white">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                </div>
+            `;
+            
+            container.appendChild(notification);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+        
+        // Initialize app when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // App is initialized by the backend constructor
+            console.log('SchApp initialized successfully!');
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9673942ad010a76a',t:'MTc1Mzg2NTExNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
